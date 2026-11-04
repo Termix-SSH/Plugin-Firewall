@@ -1,34 +1,66 @@
 {
-  "id": "hello-world",
-  "name": "Hello World",
+  "id": "firewall",
+  "name": "Firewall",
   "version": "1.0.0",
-  "description": "A minimal Termix plugin: one tab, one route, one setting and one table.",
+  "description": "Manage UFW, firewalld, nftables and iptables rules on your hosts over SSH, with lockout protection.",
   "author": {
-    "name": "Your Name"
+    "name": "Termix"
   },
   "license": "Apache-2.0",
-  "repository": "https://github.com/your-org/termix-plugin-hello-world",
-  "docs": "https://github.com/your-org/termix-plugin-hello-world/tree/main/docs",
-  "category": "Productivity",
-  "icon": "Hand",
+  "repository": "https://github.com/Termix-SSH/Plugin-Firewall",
+  "docs": "https://docs.termix.site/plugins/firewall",
+  "category": "Networking",
+  "icon": "BrickWall",
   "features": [
-    "A tab opened from the sidebar",
-    "An admin setting",
-    "A table of greetings"
+    "See and change firewall rules on UFW, firewalld, nftables and iptables hosts",
+    "Turn the firewall on or off and set the default policies",
+    "Install UFW, firewalld or Fail2ban when a host has none",
+    "SSH lockout check before a change that could cut off Termix",
+    "Risky changes undo themselves on the host unless you press Keep",
+    "Rule sets you can apply to many hosts or a fleet, with a drift check",
+    "Fail2ban jails, banned addresses, ban and unban",
+    "Get an alert when a firewall turns off or its rules change outside Termix",
+    "A firewall panel beside any SSH terminal",
+    "A dashboard card with the firewall state of every host"
   ],
   "env": [],
   "engine": {
-    "termix": ">=26.10.0",
-    "api": "^1.2"
+    "termix": ">=26.10.6",
+    "api": "^1.9"
   },
-  "capabilities": ["db:own", "network:serve", "ui:surface"],
+  "capabilities": [
+    "hosts:read",
+    "credentials:use",
+    "ssh:connect",
+    "network:serve",
+    "db:own",
+    "notify:send",
+    "users:impersonate",
+    "ui:surface"
+  ],
+  "optionalDependencies": {
+    "fleets": "^1.0.0"
+  },
+  "requires": [
+    {
+      "service": "fleets.access",
+      "versionRange": "^1.0.0",
+      "optional": true
+    }
+  ],
   "contributes": {
     "tabs": [
       {
-        "id": "hello-world",
+        "id": "firewall",
         "titleKey": "tab.title",
-        "icon": "Hand",
-        "openFrom": ["rail"]
+        "icon": "BrickWall",
+        "openFrom": ["host-context-menu", "palette"]
+      },
+      {
+        "id": "firewall-rulesets",
+        "titleKey": "rulesets.title",
+        "icon": "ListChecks",
+        "openFrom": ["palette"]
       }
     ],
     "permissions": [
@@ -40,16 +72,119 @@
       }
     ],
     "settings": {
-      "admin": [
+      "host": {
+        "enableKey": "enableFirewall",
+        "enableLabelKey": "settings.host.enable.label",
+        "enableDescriptionKey": "settings.host.enable.description",
+        "enableDefault": false,
+        "editorGroup": "ssh",
+        "fields": [
+          {
+            "key": "useSudo",
+            "type": "boolean",
+            "labelKey": "settings.host.useSudo.label",
+            "descriptionKey": "settings.host.useSudo.description",
+            "default": true,
+            "requires": "enableFirewall"
+          },
+          {
+            "key": "readOnly",
+            "type": "boolean",
+            "labelKey": "settings.host.readOnly.label",
+            "descriptionKey": "settings.host.readOnly.description",
+            "default": false,
+            "requires": "enableFirewall"
+          },
+          {
+            "key": "sshGuard",
+            "type": "boolean",
+            "labelKey": "settings.host.sshGuard.label",
+            "descriptionKey": "settings.host.sshGuard.description",
+            "default": true,
+            "requires": "enableFirewall"
+          },
+          {
+            "key": "rollbackSeconds",
+            "type": "number",
+            "labelKey": "settings.host.rollbackSeconds.label",
+            "descriptionKey": "settings.host.rollbackSeconds.description",
+            "min": 20,
+            "max": 600,
+            "default": 60,
+            "requires": "enableFirewall"
+          },
+          {
+            "key": "confirmAll",
+            "type": "boolean",
+            "labelKey": "settings.host.confirmAll.label",
+            "descriptionKey": "settings.host.confirmAll.description",
+            "default": false,
+            "requires": "enableFirewall"
+          },
+          {
+            "key": "showPanel",
+            "type": "boolean",
+            "labelKey": "settings.host.showPanel.label",
+            "descriptionKey": "settings.host.showPanel.description",
+            "default": true,
+            "requires": "enableFirewall"
+          }
+        ]
+      },
+      "user": [
         {
-          "key": "greeting",
-          "type": "string",
-          "labelKey": "settings.admin.greeting.label",
-          "descriptionKey": "settings.admin.greeting.description",
-          "default": "Hello"
+          "key": "companionAutoOpen",
+          "type": "boolean",
+          "labelKey": "settings.user.companionAutoOpen.label",
+          "descriptionKey": "settings.user.companionAutoOpen.description",
+          "default": false
+        },
+        {
+          "key": "companionSide",
+          "type": "select",
+          "labelKey": "settings.user.companionSide.label",
+          "descriptionKey": "settings.user.companionSide.description",
+          "default": "right",
+          "options": [
+            {
+              "value": "right",
+              "labelKey": "settings.user.companionSide.right"
+            },
+            {
+              "value": "left",
+              "labelKey": "settings.user.companionSide.left"
+            },
+            {
+              "value": "bottom",
+              "labelKey": "settings.user.companionSide.bottom"
+            }
+          ]
+        },
+        {
+          "key": "companionSize",
+          "type": "number",
+          "labelKey": "settings.user.companionSize.label",
+          "descriptionKey": "settings.user.companionSize.description",
+          "min": 240,
+          "max": 900,
+          "default": 360
+        },
+        {
+          "key": "companionEdgeButton",
+          "type": "boolean",
+          "labelKey": "settings.user.companionEdgeButton.label",
+          "descriptionKey": "settings.user.companionEdgeButton.description",
+          "default": true
         }
       ]
-    }
+    },
+    "dashboardCards": [
+      {
+        "id": "firewall-hosts",
+        "titleKey": "card.title",
+        "icon": "BrickWall"
+      }
+    ]
   },
   "locales": "locales",
   "platforms": ["linux", "win32", "darwin"]

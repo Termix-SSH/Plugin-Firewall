@@ -1,7 +1,56 @@
 {
   "version": 1,
   "tables": {
-    "notes": {
+    "pending": {
+      "columns": {
+        "id": {
+          "type": "id",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "hostId": {
+          "type": "refHost",
+          "notNull": true
+        },
+        "token": {
+          "type": "varchar",
+          "length": 32,
+          "notNull": true
+        },
+        "label": {
+          "type": "varchar",
+          "length": 200,
+          "notNull": true
+        },
+        "expiresAt": {
+          "type": "bigint",
+          "notNull": true
+        },
+        "reachable": {
+          "type": "boolean"
+        },
+        "userId": {
+          "type": "varchar",
+          "length": 64,
+          "notNull": true
+        },
+        "createdAt": {
+          "type": "timestamp",
+          "notNull": true,
+          "defaultNow": true
+        }
+      },
+      "indexes": [
+        {
+          "name": "idx_p_firewall_pending_host",
+          "columns": [
+            "hostId"
+          ],
+          "unique": true
+        }
+      ]
+    },
+    "rulesets": {
       "columns": {
         "id": {
           "type": "id",
@@ -13,8 +62,100 @@
           "length": 255,
           "notNull": true
         },
-        "text": {
-          "type": "text",
+        "setKey": {
+          "type": "varchar",
+          "length": 36,
+          "notNull": true
+        },
+        "name": {
+          "type": "varchar",
+          "length": 120,
+          "notNull": true
+        },
+        "description": {
+          "type": "text"
+        },
+        "rules": {
+          "type": "json",
+          "notNull": true
+        },
+        "createdAt": {
+          "type": "timestamp",
+          "notNull": true,
+          "defaultNow": true
+        },
+        "updatedAt": {
+          "type": "timestamp",
+          "notNull": true,
+          "defaultNow": true
+        }
+      },
+      "indexes": [
+        {
+          "name": "idx_p_firewall_rulesets_key",
+          "columns": [
+            "setKey"
+          ],
+          "unique": true
+        },
+        {
+          "name": "idx_p_firewall_rulesets_user",
+          "columns": [
+            "userId"
+          ]
+        }
+      ]
+    },
+    "ruleset_hosts": {
+      "columns": {
+        "id": {
+          "type": "id",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "rulesetId": {
+          "type": "integer",
+          "notNull": true
+        },
+        "hostId": {
+          "type": "refHost",
+          "notNull": true
+        },
+        "appliedAt": {
+          "type": "timestamp"
+        }
+      },
+      "indexes": [
+        {
+          "name": "idx_p_firewall_ruleset_hosts_set_host",
+          "columns": [
+            "rulesetId",
+            "hostId"
+          ],
+          "unique": true
+        },
+        {
+          "name": "idx_p_firewall_ruleset_hosts_host",
+          "columns": [
+            "hostId"
+          ]
+        }
+      ]
+    },
+    "watches": {
+      "columns": {
+        "id": {
+          "type": "id",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "userId": {
+          "type": "refUser",
+          "length": 255,
+          "notNull": true
+        },
+        "hostId": {
+          "type": "refHost",
           "notNull": true
         },
         "createdAt": {
@@ -25,8 +166,18 @@
       },
       "indexes": [
         {
-          "name": "idx_p_hello_world_notes_user_id",
-          "columns": ["userId"]
+          "name": "idx_p_firewall_watches_user_host",
+          "columns": [
+            "userId",
+            "hostId"
+          ],
+          "unique": true
+        },
+        {
+          "name": "idx_p_firewall_watches_host",
+          "columns": [
+            "hostId"
+          ]
         }
       ]
     }

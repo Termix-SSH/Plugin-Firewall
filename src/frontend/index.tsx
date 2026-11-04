@@ -1,116 +1,115 @@
-import { useEffect, useState, type FormEvent } from "react";
+import type { ComponentType } from "react";
+import { BrickWall, ListChecks } from "lucide-react";
+import type { TabProps, TermixApp } from "@termix-ssh/plugin-sdk/frontend";
+import { initApi } from "./api";
 import {
-  useTranslation,
-  type TabProps,
-  type TermixApp,
-} from "@termix-ssh/plugin-sdk/frontend";
+  FirewallCompanion,
+  useFirewallCompanionDefaults,
+} from "./FirewallCompanion";
+import { FirewallHostsCard } from "./FirewallHostsCard";
+import { FirewallManagerCard } from "./FirewallManagerCard";
+import { FirewallTab } from "./FirewallTab";
+import { RuleSetsTab } from "./RuleSetsTab";
 
-const TAB_ID = "hello-world";
+const TAB_ID = "firewall";
+const RULESETS_ID = "firewall-rulesets";
 
-interface Note {
-  id: number;
-  text: string;
-  createdAt: string;
+function settingsOf(host: object | null | undefined) {
+  const all = (host as { pluginSettings?: unknown } | null | undefined)
+    ?.pluginSettings as
+    Record<string, Record<string, unknown> | undefined> | undefined;
+  return all?.[TAB_ID];
 }
 
-function HandIcon(props: { className?: string }) {
-  return (
-    <svg
-      {...props}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8" />
-      <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.9-6-2.4l-3.6-3.6a2 2 0 0 1 2.8-2.8L7 15" />
-    </svg>
-  );
+export function firewallEnabled(host: object | null | undefined): boolean {
+  return settingsOf(host)?.enableFirewall === true;
 }
 
-function createTab(app: TermixApp) {
-  return function HelloWorldTab({ isVisible }: TabProps) {
-    const { t } = useTranslation();
-    const [greeting, setGreeting] = useState("");
-    const [notes, setNotes] = useState<Note[]>([]);
-    const [draft, setDraft] = useState("");
-    const [failed, setFailed] = useState(false);
-
-    const load = async () => {
-      try {
-        const { data } = await app.api.get<{ greeting: string; notes: Note[] }>(
-          "/notes",
-        );
-        setGreeting(data.greeting);
-        setNotes(data.notes);
-        setFailed(false);
-      } catch {
-        setFailed(true);
-      }
-    };
-
-    useEffect(() => {
-      if (isVisible) void load();
-    }, [isVisible]);
-
-    const add = async (event: FormEvent) => {
-      event.preventDefault();
-      if (!draft.trim()) return;
-      try {
-        await app.api.post("/notes", { text: draft });
-        setDraft("");
-      } catch {
-        setFailed(true);
-        return;
-      }
-      await load();
-    };
-
-    return (
-      <div className="flex flex-col gap-4 p-4">
-        <h2 className="text-lg font-semibold">{greeting}</h2>
-        <form onSubmit={add} className="flex gap-2">
-          <input
-            className="flex-1 border border-border bg-transparent px-2 py-1"
-            value={draft}
-            placeholder={t("tab.placeholder")}
-            onChange={(event) => setDraft(event.target.value)}
-          />
-          <button type="submit" className="border border-border px-3 py-1">
-            {t("tab.add")}
-          </button>
-        </form>
-        {failed && <p className="text-sm text-destructive">{t("tab.error")}</p>}
-        {notes.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t("tab.empty")}</p>
-        ) : (
-          <ul className="flex flex-col gap-1">
-            {notes.map((note) => (
-              <li key={note.id} className="border-b border-border py-1">
-                {note.text}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    );
-  };
+export function firewallPanelEnabled(host: object | null | undefined): boolean {
+  return firewallEnabled(host) && settingsOf(host)?.showPanel !== false;
 }
 
 export function activate(app: TermixApp): void {
-  app.registerRailItem({
-    id: TAB_ID,
-    icon: HandIcon,
-    titleKey: "tab.title",
-    kind: "tab",
-    permission: "use",
+  initApi(app.api);
+  // Host actions filter synchronously, so the permission is read once here.
+  let canUse = true;
+  void app.hasPermission("use").then((allowed) => {
+    canUse = allowed;
   });
-  app.registerTab(TAB_ID, createTab(app), {
-    icon: HandIcon,
+
+  app.registerTab(TAB_ID, FirewallTab, {
+    icon: BrickWall,
     titleKey: "tab.title",
+    requiresHost: true,
+    noHostMessageKey: "tab.noHost",
+    persistent: true,
+  });
+  app.registerTab(RULESETS_ID, RuleSetsTab as ComponentType<TabProps>, {
+    icon: ListChecks,
+    titleKey: "rulesets.title",
     singleton: true,
     hostless: true,
+    panelFrame: true,
+  });
+  app.registerHostAction({
+    id: TAB_ID,
+    titleKey: "tab.title",
+    icon: BrickWall,
+    kind: "open",
+    order: 48,
+    tabType: TAB_ID,
+    when: (host) => canUse && !!host.enableSsh && firewallEnabled(host),
+  });
+
+  app.registerDashboardCard({
+    id: "firewall-hosts",
+    titleKey: "card.title",
+    defaultPanel: "side",
+    defaultHeight: 240,
+    frame: "framed",
+    component: FirewallHostsCard,
+  });
+
+  app.registerCompanion(TAB_ID, FirewallCompanion, {
+    icon: BrickWall,
+    titleKey: "tab.title",
+    order: 45,
+    tabTypes: ["terminal"],
+    when: (_tab, host) =>
+      canUse && !!host?.enableSsh && firewallPanelEnabled(host),
+    useDefaults: useFirewallCompanionDefaults,
+  });
+
+  app.registerAction("firewall.togglePanel", ((
+    _handle: unknown,
+    tab: unknown,
+  ) => app.toggleCompanion(tab as never, TAB_ID)) as never);
+  app.registerSlotContribution("tab.menu", {
+    actionId: "firewall.togglePanel",
+    titleKey: "companion.toggle",
+    icon: BrickWall,
+    kind: "button",
+    order: 9,
+    when: (context) => {
+      const tab = context.tab as {
+        type?: string;
+        host?: unknown;
+        hostConfig?: unknown;
+      } | null;
+      return (
+        tab?.type === "terminal" &&
+        firewallPanelEnabled((tab.host ?? tab.hostConfig) as object)
+      );
+    },
+  });
+
+  // Fills the firewall card in Host Metrics, when that plugin runs.
+  app.registerSlotContribution("host-metrics.managers", {
+    actionId: "firewall_manager",
+    titleKey: "manager.title",
+    kind: "component",
+    component: FirewallManagerCard as unknown as ComponentType<
+      Record<string, unknown>
+    >,
   });
 }
