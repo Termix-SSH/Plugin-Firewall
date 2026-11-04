@@ -216,7 +216,7 @@ export function FirewallTab({ isVisible, host, label }: TabProps) {
         scroll
         className="gap-2 p-2.5"
       >
-        <div className="flex min-h-0 flex-col gap-2">
+        <div className="flex shrink-0 flex-col gap-2">
           {status.pending && (
             <PendingBanner
               hostId={hostId}

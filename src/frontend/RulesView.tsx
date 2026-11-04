@@ -72,7 +72,7 @@ export function RulesView({
   const hasReadOnly = status.rules.some((r) => !r.managed);
 
   return (
-    <div className="flex min-h-0 flex-col gap-2">
+    <div className="flex flex-col gap-2">
       {!compact && (
         <div className="flex flex-wrap items-center gap-2">
           <PanelSearch
