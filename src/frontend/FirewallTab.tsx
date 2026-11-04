@@ -8,6 +8,7 @@ import {
 import {
   AddButton,
   Alert,
+  AlertDescription,
   Button,
   PanelShell,
   Segmented,
@@ -225,8 +226,8 @@ export function FirewallTab({ isVisible, host, label }: TabProps) {
             />
           )}
           {status.warnings.map((warning) => (
-            <Alert key={warning} className="rounded-none text-xs">
-              {warning}
+            <Alert key={warning} className="rounded-none">
+              <AlertDescription className="text-xs">{warning}</AlertDescription>
             </Alert>
           ))}
           {!status.backend ? (

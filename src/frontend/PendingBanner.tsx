@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Timer } from "lucide-react";
 import { useToast, useTranslation } from "@termix-ssh/plugin-sdk/frontend";
-import { Alert, Button } from "@termix-ssh/plugin-sdk/ui";
+import { Alert, AlertDescription, Button } from "@termix-ssh/plugin-sdk/ui";
 import type { PendingChange } from "../shared/types";
 import { errorCode, errorMessage, keepPending, undoPending } from "./api";
 import { pendingLabel } from "./format";
@@ -68,33 +68,35 @@ export function PendingBanner({
     <Alert
       className={`rounded-none border-warning/40 ${compact ? "p-2 text-xs" : "text-sm"}`}
     >
-      <div className="flex flex-wrap items-center gap-2">
-        <Timer className="size-4 shrink-0 text-warning" />
-        <div className="min-w-0 flex-1">
-          <div className="font-medium">{pendingLabel(pending.label, t)}</div>
-          <div className="text-xs text-muted-foreground">
-            {left > 0
-              ? t("pending.left", { seconds: left })
-              : t("pending.expired")}{" "}
-            | {reach}
+      <AlertDescription className="block text-inherit">
+        <div className="flex flex-wrap items-center gap-2">
+          <Timer className="size-4 shrink-0 text-warning" />
+          <div className="min-w-0 flex-1">
+            <div className="font-medium">{pendingLabel(pending.label, t)}</div>
+            <div className="text-xs text-muted-foreground">
+              {left > 0
+                ? t("pending.left", { seconds: left })
+                : t("pending.expired")}{" "}
+              | {reach}
+            </div>
           </div>
+          {canEdit && left > 0 && (
+            <div className="flex gap-1.5">
+              <Button size="sm" disabled={busy} onClick={() => void act(true)}>
+                {t("pending.keep")}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={busy}
+                onClick={() => void act(false)}
+              >
+                {t("pending.undo")}
+              </Button>
+            </div>
+          )}
         </div>
-        {canEdit && left > 0 && (
-          <div className="flex gap-1.5">
-            <Button size="sm" disabled={busy} onClick={() => void act(true)}>
-              {t("pending.keep")}
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={busy}
-              onClick={() => void act(false)}
-            >
-              {t("pending.undo")}
-            </Button>
-          </div>
-        )}
-      </div>
+      </AlertDescription>
     </Alert>
   );
 }
