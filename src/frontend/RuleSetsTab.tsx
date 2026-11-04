@@ -166,7 +166,7 @@ export function RuleSetsTab() {
         scroll
         className="gap-2 p-2.5"
       >
-        <div className="flex min-h-0 flex-col gap-2">
+        <div className="flex shrink-0 flex-col gap-2">
           <p className="text-xs text-muted-foreground">{t("rulesets.hint")}</p>
           {failed ? (
             <p className="p-2 text-sm text-destructive">{failed}</p>
