@@ -4,6 +4,8 @@
 
 ### Added
 
+- Allow or remove a port, check a port is allowed and delete rules through Termix actions, so a port can roll out across hosts and be watched for drift in Operations Center
+- Firewall rules show in the All hosts table, and whether the firewall is on shows as a status tile
 - A Firewall tab for each host to manage UFW, firewalld, nftables and iptables over SSH
 - Add, edit and delete rules, set the default policies and firewalld zones
 - Turn the firewall on or off, and install UFW, firewalld, nftables or Fail2ban
@@ -13,3 +15,7 @@
 - Fail2ban jails, banned addresses, ban and unban
 - Alerts when a firewall turns off or its rules change outside Termix
 - A firewall panel beside SSH terminals and a dashboard card for every host
+
+### Changed
+
+- Needs Termix 26.11.1 or newer

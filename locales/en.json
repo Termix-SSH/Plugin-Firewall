@@ -320,5 +320,37 @@
   "manager": {
     "title": "Firewall",
     "disabled": "Turn on Firewall in this host's settings to manage its firewall here."
+  },
+  "operations": {
+    "list": {
+      "title": "List firewall rules"
+    },
+    "status": {
+      "title": "Firewall"
+    },
+    "portAllowed": {
+      "title": "Port is allowed",
+      "description": "Whether an allow rule for this port exists. Use it to watch hosts for drift."
+    },
+    "allow": {
+      "title": "Allow a port"
+    },
+    "remove": {
+      "title": "Remove an allowed port"
+    },
+    "delete": {
+      "title": "Delete firewall rule"
+    },
+    "rules": {
+      "title": "Firewall rules"
+    },
+    "port": "Port",
+    "protocol": "Protocol",
+    "tcp": "TCP",
+    "udp": "UDP",
+    "any": "Any",
+    "source": "From",
+    "sourceHint": "An address or range. Empty means anywhere.",
+    "direction": "Direction"
   }
 }

@@ -25,7 +25,7 @@
   ],
   "env": [],
   "engine": {
-    "termix": ">=26.10.6",
+    "termix": ">=26.11.1-0",
     "api": "^1.9"
   },
   "capabilities": [
@@ -36,7 +36,8 @@
     "db:own",
     "notify:send",
     "users:impersonate",
-    "ui:surface"
+    "ui:surface",
+    "operations:provide"
   ],
   "optionalDependencies": {
     "fleets": "^1.0.0"
@@ -184,7 +185,270 @@
         "titleKey": "card.title",
         "icon": "BrickWall"
       }
-    ]
+    ],
+    "operations": {
+      "actions": [
+        {
+          "id": "firewall.list-rules",
+          "titleKey": "operations.list.title",
+          "scope": "host",
+          "risk": "read",
+          "permission": "use",
+          "hostAccess": "connect",
+          "when": {
+            "settings": {
+              "enableFirewall": true
+            }
+          },
+          "surfaces": {
+            "assistant": true,
+            "mcp": true,
+            "palette": false
+          }
+        },
+        {
+          "id": "firewall.status",
+          "titleKey": "operations.status.title",
+          "scope": "host",
+          "risk": "read",
+          "permission": "use",
+          "hostAccess": "connect",
+          "when": {
+            "settings": {
+              "enableFirewall": true
+            }
+          },
+          "surfaces": {
+            "assistant": true,
+            "mcp": true,
+            "palette": false
+          }
+        },
+        {
+          "id": "firewall.port-allowed",
+          "titleKey": "operations.portAllowed.title",
+          "descriptionKey": "operations.portAllowed.description",
+          "scope": "host",
+          "risk": "read",
+          "permission": "use",
+          "hostAccess": "connect",
+          "inputs": [
+            {
+              "key": "port",
+              "type": "string",
+              "labelKey": "operations.port",
+              "required": true,
+              "pattern": "[0-9]{1,5}(-[0-9]{1,5})?(,[0-9]{1,5})*"
+            },
+            {
+              "key": "protocol",
+              "type": "select",
+              "labelKey": "operations.protocol",
+              "default": "tcp",
+              "options": [
+                {
+                  "value": "tcp",
+                  "labelKey": "operations.tcp"
+                },
+                {
+                  "value": "udp",
+                  "labelKey": "operations.udp"
+                },
+                {
+                  "value": "any",
+                  "labelKey": "operations.any"
+                }
+              ]
+            },
+            {
+              "key": "source",
+              "type": "string",
+              "labelKey": "operations.source",
+              "descriptionKey": "operations.sourceHint"
+            }
+          ],
+          "when": {
+            "settings": {
+              "enableFirewall": true
+            }
+          },
+          "surfaces": {
+            "assistant": true,
+            "mcp": true,
+            "palette": false
+          }
+        },
+        {
+          "id": "firewall.allow-port",
+          "titleKey": "operations.allow.title",
+          "icon": "ShieldCheck",
+          "scope": "host",
+          "risk": "change",
+          "permission": "use",
+          "hostAccess": "edit",
+          "dryRun": "describe",
+          "check": "firewall.port-allowed",
+          "undo": "firewall.remove-port",
+          "idempotent": true,
+          "exclusive": true,
+          "inputs": [
+            {
+              "key": "port",
+              "type": "string",
+              "labelKey": "operations.port",
+              "required": true,
+              "pattern": "[0-9]{1,5}(-[0-9]{1,5})?(,[0-9]{1,5})*"
+            },
+            {
+              "key": "protocol",
+              "type": "select",
+              "labelKey": "operations.protocol",
+              "default": "tcp",
+              "options": [
+                {
+                  "value": "tcp",
+                  "labelKey": "operations.tcp"
+                },
+                {
+                  "value": "udp",
+                  "labelKey": "operations.udp"
+                },
+                {
+                  "value": "any",
+                  "labelKey": "operations.any"
+                }
+              ]
+            },
+            {
+              "key": "source",
+              "type": "string",
+              "labelKey": "operations.source",
+              "descriptionKey": "operations.sourceHint"
+            }
+          ],
+          "when": {
+            "settings": {
+              "enableFirewall": true
+            }
+          },
+          "surfaces": {
+            "assistant": true,
+            "mcp": true
+          }
+        },
+        {
+          "id": "firewall.remove-port",
+          "titleKey": "operations.remove.title",
+          "icon": "ShieldOff",
+          "scope": "host",
+          "risk": "destructive",
+          "permission": "use",
+          "hostAccess": "edit",
+          "dryRun": "describe",
+          "undo": "firewall.allow-port",
+          "idempotent": true,
+          "exclusive": true,
+          "inputs": [
+            {
+              "key": "port",
+              "type": "string",
+              "labelKey": "operations.port",
+              "required": true,
+              "pattern": "[0-9]{1,5}(-[0-9]{1,5})?(,[0-9]{1,5})*"
+            },
+            {
+              "key": "protocol",
+              "type": "select",
+              "labelKey": "operations.protocol",
+              "default": "tcp",
+              "options": [
+                {
+                  "value": "tcp",
+                  "labelKey": "operations.tcp"
+                },
+                {
+                  "value": "udp",
+                  "labelKey": "operations.udp"
+                },
+                {
+                  "value": "any",
+                  "labelKey": "operations.any"
+                }
+              ]
+            },
+            {
+              "key": "source",
+              "type": "string",
+              "labelKey": "operations.source",
+              "descriptionKey": "operations.sourceHint"
+            }
+          ],
+          "when": {
+            "settings": {
+              "enableFirewall": true
+            }
+          }
+        },
+        {
+          "id": "firewall.delete-rule",
+          "titleKey": "operations.delete.title",
+          "icon": "Trash2",
+          "scope": "resource",
+          "resource": "firewall.rule",
+          "risk": "destructive",
+          "permission": "use",
+          "hostAccess": "edit",
+          "dryRun": "describe",
+          "exclusive": true,
+          "when": {
+            "settings": {
+              "enableFirewall": true
+            }
+          }
+        }
+      ],
+      "resources": [
+        {
+          "id": "firewall.rule",
+          "titleKey": "operations.rules.title",
+          "icon": "Shield",
+          "list": "firewall.list-rules",
+          "key": "id",
+          "name": "name",
+          "status": "action",
+          "tab": "firewall",
+          "columns": [
+            {
+              "key": "port",
+              "titleKey": "operations.port"
+            },
+            {
+              "key": "protocol",
+              "titleKey": "operations.protocol"
+            },
+            {
+              "key": "source",
+              "titleKey": "operations.source"
+            },
+            {
+              "key": "direction",
+              "titleKey": "operations.direction"
+            }
+          ],
+          "filters": ["action", "protocol"]
+        }
+      ],
+      "signals": [
+        {
+          "id": "firewall.on",
+          "titleKey": "operations.status.title",
+          "read": "firewall.status",
+          "scope": "host",
+          "kind": "status",
+          "refreshSec": 300
+        }
+      ]
+    }
   },
   "locales": "locales",
   "platforms": ["linux", "win32", "darwin"]
