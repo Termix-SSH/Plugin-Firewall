@@ -254,3 +254,13 @@ describe("firewall hosts card", () => {
     expect(screen.getByText("2 banned")).toBeTruthy();
   });
 });
+
+describe("homepage widget", () => {
+  it("adds a homepage widget and declares the extension point", async () => {
+    rendered = await renderWithApp(plugin, { manifest, locales });
+    expect(rendered.registered.extensions("homepage.widgets")).toEqual([
+      "firewall_widget",
+    ]);
+    expect(manifest.contributes.uses).toContain("homepage.widgets");
+  });
+});
