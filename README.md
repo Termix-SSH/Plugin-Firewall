@@ -31,6 +31,7 @@ Read the [docs](https://docs.termix.site/plugins/firewall) to set it up and use 
 - Fail2ban jails, bans and unbans
 - Alerts when a firewall turns off or changes outside Termix
 - A firewall panel beside SSH terminals and a dashboard card
+- Roll out a port across hosts and watch it for drift in Operations Center
 
 <br />
 
