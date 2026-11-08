@@ -9,6 +9,7 @@ import {
   PanelList,
   TextField,
   useConfirm,
+  LoadingState,
 } from "@termix-ssh/plugin-sdk/ui";
 import type { Fail2banStatus } from "../shared/types";
 import {
@@ -95,11 +96,9 @@ export function Fail2banView({
     }
   };
 
-  if (failed) return <p className="p-2 text-sm text-destructive">{failed}</p>;
-  if (!status)
-    return (
-      <p className="p-2 text-xs text-muted-foreground">{t("common.loading")}</p>
-    );
+  if (failed)
+    return <p className="px-3 py-2 text-xs text-destructive">{failed}</p>;
+  if (!status) return <LoadingState label={t("common.loading")} />;
 
   if (!status.installed) {
     return (
@@ -150,15 +149,19 @@ export function Fail2banView({
   }
 
   return (
-    <div className="flex flex-col gap-3">
-      <p className="text-xs text-muted-foreground">{status.version}</p>
+    <div className="flex flex-col">
+      <p className="border-b border-border px-3 py-2 text-xs text-muted-foreground">
+        {status.version}
+      </p>
       {status.jails.length === 0 && (
-        <p className="text-sm text-muted-foreground">{t("fail2ban.noJails")}</p>
+        <p className="p-3 text-xs text-muted-foreground">
+          {t("fail2ban.noJails")}
+        </p>
       )}
       {status.jails.map((jail) => (
         <div
           key={jail.name}
-          className="flex flex-col gap-1.5 border border-border p-2"
+          className="flex flex-col gap-1.5 border-b border-border p-3"
         >
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-mono text-sm font-medium">{jail.name}</span>
@@ -175,7 +178,7 @@ export function Fail2banView({
           </div>
           <PanelList
             empty={
-              <p className="px-1 py-2 text-xs text-muted-foreground/60">
+              <p className="px-3 py-2 text-xs text-muted-foreground/60">
                 {t("fail2ban.none")}
               </p>
             }
@@ -217,7 +220,6 @@ export function Fail2banView({
                 className="flex-1"
               />
               <Button
-                size="sm"
                 variant="outline"
                 disabled={busy || !(address[jail.name] ?? "").trim()}
                 onClick={() => void doBan(jail.name)}
