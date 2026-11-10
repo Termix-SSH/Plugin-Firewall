@@ -7,6 +7,9 @@
 <p>Manage UFW, firewalld, nftables and iptables rules on your hosts over SSH, with lockout protection</p>
 
 <!-- VIDEO:START -->
+
+<a href="https://www.youtube.com/watch?v=Qq7yX_Uejgg"><img src="https://img.shields.io/badge/Watch_the_demo-f59145?style=for-the-badge&logo=youtube&logoColor=white" alt="Watch the demo on YouTube" /></a>
+
 <!-- VIDEO:END -->
 
 </div>
