@@ -54,7 +54,9 @@ describe("firewall routes", () => {
     });
     expect(res.body.rules).toHaveLength(2);
     expect(res.body.managed).toBeUndefined();
-    expect(s.ssh.calls[0].command).toContain("sudo -n");
+    // The first call checks for Windows.
+    expect(s.ssh.calls[0].command).toBe("ver");
+    expect(s.ssh.calls[1].command).toContain("sudo -n");
   });
 
   it("needs the use permission", async () => {
